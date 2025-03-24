@@ -8,6 +8,7 @@ class Kunde{
 		// IstEingeloggt ist ein boolean.
 		// Der Wert ist entweder wahr oder falsch.
 		this.IstEingeloggt
+		this.Mail 
 	}
 }
 
@@ -20,6 +21,7 @@ kunde.Vorname = "Pit"
 kunde.Benutzername = "pk"
 kunde.Kennwort = "123"
 kunde.IstEingeloggt = false
+kunde.Mail = "pk@example.com"; 
 
 // Klassenefinition des Kundenberaters
 class Kundenberater{
@@ -157,16 +159,15 @@ app.get('/agb', (req, res) => {
 	// Der Server gibt die gerenderte EJS-Seite an den 
 	// Browser zurück.
 
-
 	if(kunde.IstEingeloggt){
 
 		// Wenn die Zugangsdaten korrekt sind, dann wird die angesurfte Seite gerendert.
-		res.render('login.ejs',{});
+		res.render('agb.ejs',{});
 
 	}else{
 		
 		// Wenn die Zugangsdaten nicht korrekt sind, dann wird die login-Seite gerendert.
-		res.render('agb.ejs',{
+		res.render('login.ejs',{
 			Meldung: "Melden Sie sich zuerst an."
 		});
 	}
@@ -211,7 +212,7 @@ app.get('/profil', (req, res) => {
 		// Wenn die Zugangsdaten korrekt sind, dann wird die angesurfte Seite gerendert.
 		res.render('profil.ejs',{
 			Meldung: "",
-			Email: kunde.Mail
+			Email: kunde.Mail // Zeigt die aktuelle E-Mail-Adresse an
 		});
 
 	}else{
@@ -223,47 +224,45 @@ app.get('/profil', (req, res) => {
 	}
 });
 
+
 app.post('/profil', (req, res) => {
-	
-	var meldung = "";
-
-	if(kunde.IstEingeloggt){
-
-		// Der Wert von Email wird vom Browser entgegengenommen, sobald der Kunde
-		// sein Profil ändern will.
-
-		let email = req.body.Email;
-		
-		// Die übergebene Adresse wird in die Validate-Funktion übergeben und geprüft
-
-		if(validator.validate(email)){
-
-			console.log("Gültige EMail.")
-			meldung = "EMail-adresse gültig";
-			kunde.Mail = email;
-
-		}else{
-			console.log("Ungültige EMail.")
-			meldung = "EMail-adresse ungültig";
-		}
-		
-		// Die profil-Seite wird gerendert.
-		res.render('profil.ejs',{
-			Meldung: meldung,
-			Email: ""
-		});
-
-	}else{
-		
-		// Wenn die Zugangsdaten nicht korrekt sind, dann wird die login-Seite gerendert.
-		res.render('login.ejs',{
-			Meldung: "Melden Sie sich zuerst an."
-		});
-	}
+    var meldung = "";
+    if(kunde.IstEingeloggt){
+        let email = req.body.Email;
+        if(validator.validate(email)){
+            console.log("Gültige EMail.")
+            meldung = "EMail-Adresse gültig";
+            kunde.Mail = email;
+        }else{
+            console.log("Ungültige EMail.")
+            meldung = "EMail-Adresse ungültig";
+        }
+        res.render('profil.ejs',{
+            Meldung: meldung,
+            Email: kunde.Mail // Zeigt die aktuelle E-Mail-Adresse an
+        });
+    }else{
+        res.render('login.ejs',{
+            Meldung: "Melden Sie sich zuerst an."
+        });
+    }
 });
 
 app.get('/postfach', (req, res) => {
-	res.render('postfach.ejs',{});
+	if(kunde.IstEingeloggt){
+
+		// Wenn die Zugangsdaten korrekt sind, dann wird die angesurfte Seite gerendert.
+		res.render('postfach.ejs',{
+			
+		});
+
+	}else{
+		
+		// Wenn die Zugangsdaten nicht korrekt sind, dann wird die login-Seite gerendert.
+		res.render('login.ejs',{
+			Meldung: "Melden Sie sich zuerst an."
+		});
+	}
 });
 
 // Sobald die Seite "Kredit beantragen" aufgerufen wird, wird die app.get abgearbeitet.
@@ -312,19 +311,40 @@ app.post('/kreditBeantragen', (req, res) => {
 });
 
 app.get('/ueberweisungAusfuehren', (req, res) => {
+    if(kunde.IstEingeloggt){
+        // Wenn die Zugangsdaten korrekt sind, dann wird die angesurfte Seite gerendert.
+        res.render('ueberweisungAusfuehren.ejs', {});
+    }else{
+        // Wenn die Zugangsdaten nicht korrekt sind, dann wird die login-Seite gerendert.
+        res.render('login.ejs', {
+            Meldung: "Melden Sie sich zuerst an."
+        });
+    }
+});
 
-	if(kunde.IstEingeloggt){
+app.get('/geldAnlegen', (req, res) => {
+    if(kunde.IstEingeloggt){
+        // Wenn die Zugangsdaten korrekt sind, dann wird die angesurfte Seite gerendert.
+        res.render('geldAnlegen.ejs', {
+            Betrag: 120,
+            Laufzeit: 2,
+            Meldung: "",
+            Zinssatz: 10 // Fester Zinssatz von 10%
+        });
+    }else{
+        // Wenn die Zugangsdaten nicht korrekt sind, dann wird die login-Seite gerendert.
+        res.render('login.ejs', {
+            Meldung: "Melden Sie sich zuerst an."
+        });
+    }
+});
 
-		// Wenn die Zugangsdaten korrekt sind, dann wird die angesurfte Seite gerendert.
-		res.render('ueberweisungAusfuehren.ejs',{});
-
-	}else{
-		
-		// Wenn die Zugangsdaten nicht korrekt sind, dann wird die login-Seite gerendert.
-		res.render('login.ejs',{
-			Meldung: "Melden Sie sich zuerst an."
-		});
-	}
+app.get('/login', (req, res) => {
+    kunde.IstEingeloggt = false;
+    console.log("kunde.IstEingeloggt: " + kunde.IstEingeloggt);
+    res.render('login.ejs', {
+        Meldung: "Bitte Benutzername und Kennwort eingeben."
+    });
 });
 
 // Die Funktion app.get('/geldAnlegen...) wird abgearbeitet, wenn der Benutzer die Seite geldAnlegen
@@ -338,24 +358,24 @@ app.get('/geldAnlegen', (req, res) => {
 	if(kunde.IstEingeloggt){
 
 		// Wenn die Zugangsdaten korrekt sind, dann wird die angesurfte Seite gerendert.
-		res.render('geldAnlegen.ejs',{
-
-			// In der geldAnlegen.ejs gibt es die Variablen Betrag und Laufzeit.
-			// Der Server übergibt die folgenden Werte an den Browser:
+			res.render('geldAnlegen.ejs', {
 	
-			Betrag:120,
-			Laufzeit:2,
-			Meldung: ""
-		})
-
-	}else{
+				// In der geldAnlegen.ejs gibt es die Variablen Betrag und Laufzeit.
+				// Der Server übergibt die folgenden Werte an den Browser:
 		
-		// Wenn die Zugangsdaten nicht korrekt sind, dann wird die login-Seite gerendert.
-		res.render('login.ejs',{
-			Meldung: "Melden Sie sich zuerst an."
-		});
-	}
-});
+				Betrag: 120,
+				Laufzeit: 2,
+				Meldung: "",
+				Zinssatz: 10 // Fester Zinssatz von 10%
+			});
+		} else {
+			
+			// Wenn die Zugangsdaten nicht korrekt sind, dann wird die login-Seite gerendert.
+			res.render('login.ejs',{
+				Meldung: "Melden Sie sich zuerst an."
+			});
+		}
+	});
 
 // Die Funktion app.post('/geldAnlegen...) wird abgearbeitet, wenn der Kunde auf dem Formular den Absenden-Button klickt.
 
@@ -371,24 +391,25 @@ app.post('/geldAnlegen', (req, res) => {
 	let laufzeit = req.body.Laufzeit;
 	console.log("geldAnlegen: Gewünschte Laufzeit: " + laufzeit + " Jahre")
 
-	let zinssatz = 0.1
+	let zinssatz = 10; // Fester Zinssatz von 10%
 
-	let zinsen = betrag * zinssatz;
-
+	let zinsen = betrag * (zinssatz / 100) * laufzeit;
+	console.log("geldAnlegen: Berechnete Zinsen: " + zinsen + " Euro")
 
 	if(kunde.IstEingeloggt){
 
 		// Wenn die Zugangsdaten korrekt sind, dann wird die angesurfte Seite gerendert.
-		res.render('geldAnlegen.ejs',{
+		res.render('geldAnlegen.ejs', {
 			Betrag: betrag,
 			Laufzeit: laufzeit,
-			Meldung: "Ihre Zinsen betragen: " + zinsen
+			Meldung: "Ihre Zinsen betragen: " + zinsen + " Euro",
+			Zinssatz: zinssatz
 		});
 
 	}else{
 		
 		// Wenn die Zugangsdaten nicht korrekt sind, dann wird die login-Seite gerendert.
-		res.render('login.ejs',{
+		res.render('login.ejs', {
 			Meldung: "Melden Sie sich zuerst an."
 		});
 	}
@@ -400,7 +421,7 @@ app.get('/login', (req, res) => {
 	kunde.IstEingeloggt = false;
 	console.log("kunde.IstEingeloggt: " + kunde.IstEingeloggt)
 
-	res.render('login.ejs',{
+	res.render('login.ejs', {
 		Meldung: "Bitte Benutzername und Kennwort eingeben."
 	});
 });
@@ -438,32 +459,25 @@ app.post('/login', (req, res) => {
 		// Kundenobjekt in eine Zeichenkette umgewandelt. Dazu wird die stringify-Funktion
 		// auf das JSON-Objekt aufgerufen.
 		res.cookie('istAngemeldetAls', JSON.stringify(kunde) , { maxAge: 900000, httpOnly: true, signed: false });
-		console.log("Das Kundenobjekt im Cookie gespeichert.")
-		
-
-
-
+		console.log("Das Kundenobjekt im Cookie gespeichert.");
 
 		// Wenn die Eingangebdaten korrekt sind, dann wird die index-Seite gerendert.
-		res.render('index.ejs',{
+		res.render('index.ejs', {
 			Meldung: meldung
 		});
 
 	}else{
-		console.log("Die Zugangsdaten wurden NICHT korrekt eingegeben.")
-		meldung = "Die Zugangsdaten wurden NICHT korrekt eingegeben."
+		console.log("Die Zugangsdaten wurden NICHT korrekt eingegeben.");
+		meldung = "Die Zugangsdaten wurden NICHT korrekt eingegeben.";
 		kunde.IstEingeloggt = false;
-		console.log("kunde.IstEingeloggt: " + kunde.IstEingeloggt)
+		console.log("kunde.IstEingeloggt: " + kunde.IstEingeloggt);
 
 		// Wenn die Zugangsdaten nicht korrekt sind, dann wird die login-Seite erneut gerendert.
-		res.render('login.ejs',{
+		res.render('login.ejs', {
 			Meldung: meldung
 		});
 	}
 });
-
-
-
 
 // Mit listen() wird der Server angewiesen, auf den angegebenen Host und
 // Port zu lauschen.  
@@ -476,8 +490,3 @@ app.listen(PORT, HOST);
 // Ausdruck übergeben. Ein Verb mit anschließenden runden Klammern steht
 // immer für eine Anweisung etwas zu tun. 
 console.log(`Running on http://${HOST}:${PORT}`);
-
-//require('./uebungen/01-grundlagen.js');
-//require('./uebungen/03-objekte.js');
-//require('./klausuren/klausur20240930.js');
-//require('./uebungen/04-funktionen.js');
